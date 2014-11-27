@@ -1,0 +1,208 @@
+<html> 
+    <head> 
+    <script id="fadeout-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        void main(void) {
+        vec4 position = vec4(aVertexPosition, 1.0);
+            gl_Position = uPMatrix * uMVMatrix * position;
+        }
+    </script>
+    <script id="fadeout-fs" type="x-shader/x-fragment">
+        precision highp float;
+        uniform float fade;
+
+        void main(void) {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, fade);
+        }
+    </script>
+
+    <script id="deform-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        varying highp vec2 vTextureCoord;
+
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = aTextureCoord;
+        }
+    </script>
+    <script id="deform-fs" type="x-shader/x-fragment">
+        precision highp float;
+        varying highp vec2 vTextureCoord;
+        uniform sampler2D uSampler;
+        uniform sampler2D uDeformSampler;
+        uniform float time;
+
+
+        void main(void) {
+            vec4 uv = texture2D(uDeformSampler, vec2( vTextureCoord.s, vTextureCoord.t ));
+            gl_FragColor = texture2D(uSampler, vec2(uv.x + time / 1000.0, uv.y));
+        }
+    </script>
+
+    <script id="image-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        varying highp vec2 vTextureCoord;
+
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = aTextureCoord;
+        }
+    </script>
+    <script id="image-fs" type="x-shader/x-fragment">
+        varying highp vec2 vTextureCoord;
+        uniform sampler2D uImageSampler;
+
+        void main(void) {
+            gl_FragColor = texture2D(uImageSampler, vTextureCoord);
+        }
+    </script>
+        
+    <script type="text/javascript" src="webgl-image.js"></script> 
+    <script type="text/javascript" src="sylvester.js"></script> 
+    <script type="text/javascript" src="glUtils.js"></script> 
+    <script type="text/javascript" src="deform-webgl.js"></script> 
+    <script type="text/javascript" src="fadeout.js"></script> 
+    <script type="text/javascript"> 
+        var gl;
+
+        var deform;
+        var credits;
+        var fadeOut;
+        var end;
+        var duration = 14000; // in msec
+        var fadeOutDuration = 2000; // in msec
+        var fadeInDuration = 2000; // in msec
+        var startTime = Date.now();
+
+        var images = {};
+        var imagesToLoadCount = 0;
+
+        var requestAnimFrame = window.mozRequestAnimationFrame    ||
+                               window.webkitRequestAnimationFrame ||
+                               window.msRequestAnimationFrame     ||
+                               window.oRequestAnimationFrame;
+
+        function init() {
+            gl = initWebGL("demo");
+            if (gl) {
+                deform = new Deform(gl, document.getElementById("demo"), 0, 0, 640, 480, images['rotozoom.png']);
+                deform.init();
+
+                credits = new WebGLImage(gl, document.getElementById("demo"), 0, 0, 640, 480, images['credits.png']);
+                credits.init();
+
+                fadeOut = new FadeOut(gl, document.getElementById("demo"));
+                fadeOut.init();
+
+                end = new WebGLImage(gl, document.getElementById("demo"), 0, 0, 640, 480, images['end.png']);
+                end.init();
+
+                animate(Date.now());
+            }
+        }
+
+        function initWebGL(canvasID) {
+            var gl = null;
+          
+            var elem = document.getElementById(canvasID);
+
+            try {
+                gl = elem.getContext("experimental-webgl");
+            }
+            catch(e) {
+            }
+          
+            if (!gl) {
+                alert("Unable to initialize WebGL. Your browser may not support it.");
+                return false;
+            }
+
+            gl.getExtension('OES_texture_float');
+
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+            gl.clearDepth(1.0);                 // Clear everything
+            //gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+            //gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+            return gl;
+        }
+
+        function draw(timestamp) {
+
+            var currentDuration = timestamp - startTime;
+
+            deform.draw(timestamp);
+            credits.draw(timestamp);
+
+            if (currentDuration < fadeInDuration) {
+                var fadeValue = 1.0 - (currentDuration / fadeInDuration);
+                fadeOut.setValue(fadeValue);
+                fadeOut.draw(timestamp);
+            }
+
+            if (currentDuration > duration - fadeOutDuration) {
+                var fadeValue = (currentDuration - (duration - fadeOutDuration)) / fadeOutDuration;
+                fadeOut.setValue(fadeValue);
+                fadeOut.draw(timestamp);
+            }
+
+            if (currentDuration > duration) {
+                end.draw(timestamp);
+            }
+        }
+
+        function loadImages () {
+            images['rotozoom.png'] = null;
+            images['credits.png'] = null;
+            images['end.png'] = null;
+
+            for (image in images) {
+                imagesToLoadCount++;
+            }
+            for (image in images) {
+                images[image] = new Image();
+                images[image].onload = afterImageLoad;
+                images[image].src = image;
+            }
+        }
+
+        function afterImageLoad () {
+            imagesToLoadCount--;
+            if (imagesToLoadCount == 0) {
+                init();
+            }
+        }
+
+        function animate(timestamp) {
+            draw(timestamp);
+            requestAnimFrame(animate);
+        }
+
+        loadImages();
+
+    </script> 
+    </head> 
+    <body style="margin:0; background-color:black; color: orange; margin-top:50px">
+        <div id="main" style="margin-left:auto; margin-right:auto; width:640px; height:480px; border: 1px solid white;">
+            <canvas id="demo" width="640" height="480">
+            </canvas>
+        </div>
+    </body> 
+</html>
+

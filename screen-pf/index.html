@@ -1,0 +1,523 @@
+<html> 
+    <head> 
+    <script id="fadeout-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        void main(void) {
+        vec4 position = vec4(aVertexPosition, 1.0);
+            gl_Position = uPMatrix * uMVMatrix * position;
+        }
+    </script>
+    <script id="fadeout-fs" type="x-shader/x-fragment">
+        precision highp float;
+        uniform float fade;
+
+        void main(void) {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, fade);
+        }
+    </script>
+
+    <script id="wireshapes-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        void main(void) {
+            vec4 position = vec4(aVertexPosition, 1.0);
+            gl_Position = uPMatrix * uMVMatrix * position;
+        }
+    </script>
+    <script id="wireshapes-fs" type="x-shader/x-fragment">
+        void main(void) {
+            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+    </script>
+
+    <script id="rotozoom-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        varying highp vec2 vTextureCoord;
+
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = aTextureCoord;
+        }
+    </script>
+    <script id="rotozoom-fs" type="x-shader/x-fragment">
+        precision highp float;
+        varying highp vec2 vTextureCoord;
+        uniform sampler2D uSampler;
+        uniform float sintime;
+        uniform float costime;
+        uniform float zoom;
+        uniform float centerX;
+        uniform float centerY;
+    
+        void main(void) {
+            float r_sin = sintime;
+            float r_cos = costime;
+            float r_cx = centerX;
+            float r_cy = centerY;
+
+            float positivesin = (sintime + 1.0) / 2.0 + 0.3;
+            float r_x = (vTextureCoord.x - r_cx);
+            float r_y = (vTextureCoord.y - r_cy);
+            float r_xrot = r_x * r_cos - r_y * r_sin;
+            float r_yrot = r_x * r_sin + r_y * r_cos;
+            
+            vec2 ScaledTexcoord = vec2(r_xrot * zoom, r_yrot * zoom);
+
+            gl_FragColor = texture2D(uSampler, ScaledTexcoord);
+        }
+    </script>
+
+    <script id="scrolltext-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+        uniform float currentShift;
+        uniform float time;
+        uniform bool backdrop;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        varying highp vec2 vTextureCoord;
+        varying vec4 vColor;
+
+        void main(void) {
+            if (backdrop == false)
+            {
+                gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition.x - currentShift, aVertexPosition.yz, 1.0);
+            }
+            else
+            {
+                gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            }
+            vTextureCoord = aTextureCoord;
+
+            vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
+            float offset = mod(time / 8.0, 640.0) / 640.0;
+
+            float h = 360.0 * mod(gl_Position.x / 2.0 + offset, 1.0) /  60.0;
+            float x = 1.0 - abs(mod(h, 2.0) - 1.0);
+            if (h < 1.0)
+                color = vec4(1.0, x, 0.0, 1.0);
+            else if (h < 2.0)
+                color = vec4(x, 1.0, 0.0, 1.0);
+            else if (h < 3.0)
+                color = vec4(0.0, 1.0, x, 1.0);
+            else if (h < 4.0)
+                color = vec4(0.0, x, 1.0, 1.0);
+            else if (h < 5.0)
+                color = vec4(x, 0.0, 1.0, 1.0);
+            else if (h <= 6.0)
+                color = vec4(1.0, 0.0, x, 1.0);
+
+            vColor = color;
+        }
+    </script>
+    <script id="scrolltext-fs" type="x-shader/x-fragment">
+        precision highp float;
+        varying highp vec2 vTextureCoord;
+        varying vec4 vColor;
+        uniform sampler2D uFontSampler;
+        uniform bool backdrop;
+
+        void main(void) {
+            if (backdrop == false)
+            {
+                vec4 light = texture2D(uFontSampler, vTextureCoord);
+                gl_FragColor = light * vColor;
+            }
+            else
+            {
+                gl_FragColor = vec4(0.0, 0.0, 0.0,  0.5);
+            }
+        }
+    </script>
+
+    <script id="deform-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        varying highp vec2 vTextureCoord;
+
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = aTextureCoord;
+        }
+    </script>
+    <script id="deform-fs" type="x-shader/x-fragment">
+        precision highp float;
+        varying highp vec2 vTextureCoord;
+        uniform sampler2D uSampler;
+        uniform sampler2D uDeformSampler;
+        uniform float time;
+
+
+        void main(void) {
+            vec4 uv = texture2D(uDeformSampler, vec2( vTextureCoord.s, vTextureCoord.t ));
+            gl_FragColor = texture2D(uSampler, vec2(uv.x + time / 1000.0, uv.y));
+        }
+    </script>
+
+    <script id="image-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        varying highp vec2 vTextureCoord;
+
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = aTextureCoord;
+        }
+    </script>
+    <script id="image-fs" type="x-shader/x-fragment">
+        varying highp vec2 vTextureCoord;
+        uniform sampler2D uImageSampler;
+
+        void main(void) {
+            gl_FragColor = texture2D(uImageSampler, vTextureCoord);
+        }
+    </script>
+        
+    <script id="twister-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        varying highp vec2 vTextureCoord;
+
+        void main(void) {
+            vec4 position = vec4(aVertexPosition.x, aVertexPosition.y + 1.0, aVertexPosition.z, 1.0);
+            gl_Position = uPMatrix * uMVMatrix * position;
+            vTextureCoord = aTextureCoord;
+        }
+    </script>
+    <script id="twister-fs" type="x-shader/x-fragment">
+        varying highp vec2 vTextureCoord;
+        uniform sampler2D uImageSampler;
+
+        void main(void) {
+            gl_FragColor = texture2D(uImageSampler, vTextureCoord);
+        }
+    </script>
+
+    <script id="plasma-vs" type="x-shader/x-vertex">
+        attribute vec3 aVertexPosition;
+        attribute vec2 aTextureCoord;
+
+        uniform mat4 uMVMatrix;
+        uniform mat4 uPMatrix;
+
+        varying highp vec2 vTextureCoord;
+
+        void main(void) {
+            gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+            vTextureCoord = aTextureCoord;
+        }
+    </script>
+    <script id="plasma-fs" type="x-shader/x-fragment">
+        precision highp float;
+        varying highp vec2 vTextureCoord;
+        uniform sampler2D uPaletteSampler;
+        uniform sampler2D uPlasmaSampler;
+        uniform float time;
+        uniform float colorbarTop;
+        uniform float colorbarBottom;
+        uniform float colorbarOpacity;
+        uniform float plasmaTop;
+        uniform float plasmaBottom; 
+        uniform float plasmaOpacity; 
+
+        void main(void) {
+            if (gl_FragCoord.y <= plasmaTop && gl_FragCoord.y >= plasmaBottom)
+            {
+                float x1 = (1.0 + cos(time / 19400.0)) / 2.0;
+                float x2 = (1.0 + sin(-time / 1140.0)) / 2.0;
+                float x3 = (1.0 + sin(-time / 1370.0)) / 2.0;
+                float y1 = (1.0 + sin(time / 24600.0)) / 2.0;
+                float y2 = (1.0 + cos(-time / 0750.0)) / 2.0;
+                float y3 = (1.0 + cos(-time / 1080.0)) / 2.0;
+                vec2 ratioLUT = vec2(640.0 / 1024.0, 50.0 / 128.0);
+                vec2 ratioTEX = vec2(1.0, 480.0 / 50.0);
+
+                vec4 index1 = texture2D(uPlasmaSampler, vec2(((vTextureCoord.s * ratioTEX.x + x1) / 2.0) * ratioLUT.x, ((vTextureCoord.t * ratioTEX.y + y1) / 2.0) * ratioLUT.y));
+                vec4 index2 = texture2D(uPlasmaSampler, vec2(((vTextureCoord.s * ratioTEX.x + x2) / 2.0) * ratioLUT.x, ((vTextureCoord.t * ratioTEX.y + y2) / 2.0) * ratioLUT.y));
+                vec4 index3 = texture2D(uPlasmaSampler, vec2(((vTextureCoord.s * ratioTEX.x + x3) / 2.0) * ratioLUT.x, ((vTextureCoord.t * ratioTEX.y + y3) / 2.0) * ratioLUT.y));
+                float index = ((index1.r + index2.g + index3.g) / 3.0);
+
+                index = mod(index - mod(time / 8.0, 640.0) / 640.0, 1.0);
+
+                vec4 color = vec4(texture2D(uPaletteSampler, vec2(0, index)).rgb / 1.0, 1.0);
+
+                gl_FragColor = vec4(color.rgb, plasmaOpacity);
+            }
+
+
+            if ((gl_FragCoord.y >= colorbarTop && gl_FragCoord.y < colorbarTop + 1.0) ||
+                (gl_FragCoord.y >= colorbarBottom && gl_FragCoord.y < colorbarBottom + 1.0))
+            {
+                float offset = mod(time / 8.0, 640.0) / 640.0;
+
+                float h = 360.0 * mod(vTextureCoord.s - offset, 1.0) /  60.0;
+                float x = 1.0 - abs(mod(h, 2.0) - 1.0);
+                vec4 colorbar;
+                if (h < 1.0)
+                    colorbar = vec4(1.0, x, 0.0, 1.0);
+                else if (h < 2.0)
+                    colorbar = vec4(x, 1.0, 0.0, 1.0);
+                else if (h < 3.0)
+                    colorbar = vec4(0.0, 1.0, x, 1.0);
+                else if (h < 4.0)
+                    colorbar = vec4(0.0, x, 1.0, 1.0);
+                else if (h < 5.0)
+                    colorbar = vec4(x, 0.0, 1.0, 1.0);
+                else if (h <= 6.0)
+                    colorbar = vec4(1.0, 0.0, x, 1.0);
+
+                gl_FragColor = vec4(colorbar.rgb, colorbarOpacity);
+            }
+        }
+    </script>
+
+    <script type="text/javascript" src="webgl-image.js"></script> 
+    <script type="text/javascript" src="plasma-webgl.js"></script> 
+    <script type="text/javascript" src="sylvester.js"></script> 
+    <script type="text/javascript" src="glUtils.js"></script> 
+    <script type="text/javascript" src="twister.js"></script> 
+    <script type="text/javascript" src="deform-webgl.js"></script> 
+    <script type="text/javascript" src="rotozoom.js"></script> 
+    <script type="text/javascript" src="scrolltext.js"></script> 
+    <script type="text/javascript" src="wireshapes.js"></script> 
+    <script type="text/javascript" src="fadeout.js"></script> 
+    <script type="text/javascript" src="libs/codef_music.js"></script> 
+    <script type="text/javascript" src="Stats.js"></script> 
+    <script type="text/javascript"> 
+        var gl;
+
+        var plasma;
+        var deform;
+        var logo;
+        var twister;
+        var scrolltext;
+        var wireshapes;
+        var rotozoom;
+        var fadeOut;
+        var player;
+        var musicVolume = 1.0;
+        var duration = 65000; // in msec
+        var fadeOutDuration = 1000; // in msec
+        var startTime = Date.now();
+
+        var images = {};
+        var imagesToLoadCount = 0;
+
+        var requestAnimFrame = window.mozRequestAnimationFrame    ||
+                               window.webkitRequestAnimationFrame ||
+                               window.msRequestAnimationFrame     ||
+                               window.oRequestAnimationFrame;
+
+        function init() {
+            gl = initWebGL("demo");
+            if (gl) {
+                //deform = new Deform(gl, document.getElementById("demo"), 0, 100, 640, 300, images['rotozoom.png']);
+                //deform.init();
+                rotozoom = new Rotozoom(gl, document.getElementById("demo"), 0, 0, 640, 480, images['rotozoom.png']);
+                rotozoom.init();
+                plasma = new Plasma(gl, document.getElementById("demo"), 0, 20, 640, 50, images['palette.png']);
+                plasma.init();
+                logo = new WebGLImage(gl, document.getElementById("demo"), 20, 0, 600, 90, images['logo.png']);
+                logo.init();
+
+                //twister = new Twister(gl, document.getElementById("demo"), 500, 0, 100, 480, images['rotozoom.png']);
+                //twister.init();
+
+
+                scrolltext = new Scrolltext(gl, document.getElementById("demo"), 32, 32, images['WAYNE_3D.png'], ' ', 320, 192, "                         HELLO DEMOJS!   GREETS FLY TO ADINPSZ CALODOX CTRL-ALT-TEST DFR DREAMDEALERS FREQUENCY MJJPROD NOEXTRA ORB POPSYTEAM RAZOR1911 SECTORONE VITALMOTION XMEN            ", 435);
+                // THIS SCREEN IS MADE BY PUNKFLOYD, PURVEYOR OF FINE UNREADABLE SCROLLTEXTS SINCE 2011.
+                scrolltext.init();
+
+                wireshapes = new Wireshapes(gl, document.getElementById("demo"), images['rotozoom.png']);
+                wireshapes.init();
+
+                fadeOut = new FadeOut(gl, document.getElementById("demo"));
+                fadeOut.init();
+
+                // Music
+                player = new music("YM");
+                player.player.setVolume(musicVolume);
+                player.LoadAndRun('music/Cuddly-BigSprite.ym');
+
+                animate(Date.now());
+            }
+        }
+
+        function initWebGL(canvasID) {
+            var gl = null;
+          
+            var elem = document.getElementById(canvasID);
+
+            try {
+                gl = elem.getContext("experimental-webgl");
+            }
+            catch(e) {
+            }
+          
+            if (!gl) {
+                alert("Unable to initialize WebGL. Your browser may not support it.");
+                return false;
+            }
+
+            gl.getExtension('OES_texture_float');
+
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+            gl.clearDepth(1.0);                 // Clear everything
+            //gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+            //gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+            return gl;
+        }
+
+        function get2DContext(canvasID) {
+            var elem = document.getElementById(canvasID);
+
+            if (elem && elem.getContext) {
+                return elem.getContext('2d');
+            }
+            return null;
+        }
+
+        function draw(timestamp) {
+
+            //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            //deform.draw(timestamp);
+            //twister.draw(timestamp);
+
+            rotozoom.draw(timestamp);
+            scrolltext.drawBackdrop(timestamp);
+            plasma.draw(timestamp);
+            wireshapes.draw(timestamp);
+                logo.draw(timestamp);
+
+            if (timestamp - startTime > 16000) {
+                scrolltext.draw(timestamp);
+                // TODO : fixer la symchro du logo
+            }
+
+            var currentDuration = timestamp - startTime;
+
+            if (currentDuration > duration - fadeOutDuration) {
+                var fadeValue = (currentDuration - (duration - fadeOutDuration)) / fadeOutDuration;
+                fadeOut.setValue(fadeValue);
+                fadeOut.draw(timestamp);
+
+                var volume = musicVolume * (1.0 - fadeValue);
+                if (volume < 0.0) {
+                    volume = 0.0;
+                }
+                player.player.setVolume(volume);
+            }
+        }
+
+        function loadImages () {
+            images['rotozoom.png'] = null;
+            images['palette.png'] = null;
+            images['logo.png'] = null;
+            images['WAYNE_3D.png'] = null;
+
+            for (image in images) {
+                imagesToLoadCount++;
+            }
+            for (image in images) {
+                images[image] = new Image();
+                images[image].onload = afterImageLoad;
+                images[image].src = image;
+            }
+        }
+
+        function afterImageLoad () {
+            imagesToLoadCount--;
+            if (imagesToLoadCount == 0) {
+                init();
+            }
+        }
+
+        function animate(timestamp) {
+
+            var currentDuration = timestamp - startTime;
+            if (currentDuration > duration + 100) {
+                // go back to the main menu
+                window.location.href = '../index.html?team=punkfloyd';
+            }
+            else {
+                draw(timestamp);
+                stats.update();
+                requestAnimFrame(animate);
+            }
+        }
+
+        var stats = new Stats();
+        function initStats() {
+            // Align top-left
+            stats.getDomElement().style.display = 'none';
+            stats.getDomElement().style.position = 'absolute';
+            stats.getDomElement().style.left = '0px';
+            stats.getDomElement().style.top = '0px';
+
+            document.body.appendChild( stats.getDomElement() );
+        }
+
+        if (window.addEventListener) {
+            window.addEventListener("keydown", function(e){
+                    if (e.keyCode == 68 || e.keyCode == 100) {
+                        var element = stats.getDomElement();
+                        if (element.style.display == 'none') {
+                            element.style.display = 'block';
+                        }
+                        else {
+                            element.style.display = 'none';
+                        }
+                    }
+                    if (e.keyCode == 77 || e.keyCode == 109) {
+                        if (player.player.getVolume() == 0.0) {
+                            player.player.setVolume(musicVolume);
+                        }
+                        else {
+                            player.player.setVolume(0.0);
+                        }
+                    }
+
+                }, true);
+        }
+
+        loadImages();
+
+    </script> 
+    </head> 
+    <body style="margin-top:50px; background-color:black; color: orange" onload="initStats();">
+        <div id="main" style="margin-left:auto; margin-right:auto; width:640; height:480; text-align: center">
+            <canvas id="demo" width="640" height="480" style="border: 1px solid white">
+            </canvas>
+        </div>
+    </body> 
+</html>
+
