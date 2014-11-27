@@ -1,0 +1,20 @@
+{
+  "name": "BigIntro",
+  "version": "1.0.0",
+  "description": "demojs 2011 compo",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "nop/pf, latortue/pf, romano58/!!m, maracuja/zuul",
+
+  "devDependencies": {
+    "express": "^4.10.4",
+    "grunt": "^0.4.5",
+    "grunt-contrib-connect": "^0.9.0",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-zip": "^0.16.2",
+    "load-grunt-tasks": "^1.0.0"
+  }
+}
