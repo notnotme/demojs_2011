@@ -305,7 +305,7 @@
     <script type="text/javascript" src="scrolltext.js"></script> 
     <script type="text/javascript" src="wireshapes.js"></script> 
     <script type="text/javascript" src="fadeout.js"></script> 
-    <script type="text/javascript" src="libs/codef_music.js"></script> 
+    <script type="text/javascript" src="libs/codef_music.NoMinified.js"></script> 
     <script type="text/javascript" src="Stats.js"></script> 
     <script type="text/javascript"> 
         var gl;
@@ -360,7 +360,7 @@
 
                 // Music
                 player = new music("YM");
-                player.player.setVolume(musicVolume);
+                //player.player.setVolume(musicVolume);
                 player.LoadAndRun('music/Cuddly-BigSprite.ym');
 
                 animate(Date.now());
@@ -434,7 +434,7 @@
                 if (volume < 0.0) {
                     volume = 0.0;
                 }
-                player.player.setVolume(volume);
+                //player.player.setVolume(volume);
             }
         }
 
@@ -498,12 +498,12 @@
                         }
                     }
                     if (e.keyCode == 77 || e.keyCode == 109) {
-                        if (player.player.getVolume() == 0.0) {
+                        /*if (player.player.getVolume() == 0.0) {
                             player.player.setVolume(musicVolume);
                         }
                         else {
                             player.player.setVolume(0.0);
-                        }
+                        }*/
                     }
 
                 }, true);
