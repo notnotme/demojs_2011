@@ -1,7 +1,10 @@
 /*------------------------------------------------------------------------------
 Copyright (c) 2011 Antoine Santo Aka NoNameNo
 
-This File is part of the CODEF project. (http://code.google.com/p/codef/)
+This File is part of the CODEF project.
+
+More info : http://codef.santo.fr
+Demo gallery http://www.wab.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -104,6 +107,15 @@ function scrolltext_horizontal(){
 					else if(this.scrtxt.charAt(this.scroffset+1) =="S"){
 						this.speed=this.scrtxt.charAt(this.scroffset+2);
 						this.scroffset+=3;
+					}
+					//
+					// ADDON by Robert Annett
+					//
+					else if(this.scrtxt.charAt(this.scroffset+1) =="C"){
+						var end = this.scrtxt.indexOf(';', this.scroffset+2);
+						var functionName = this.scrtxt.substring(this.scroffset+2, end);			
+						window[functionName]();
+						this.scroffset+=(end-this.scroffset)+1;
 					}
 				}else{
 					this.letters[i].posx=this.wide*this.fontw+(this.letters[i].posx+this.fontw);
@@ -224,6 +236,15 @@ function scrolltext_vertical(){
 					else if(this.scrtxt.charAt(this.scroffset+1) =="S"){
 						this.speed=this.scrtxt.charAt(this.scroffset+2);
 						this.scroffset+=3;
+					}
+					//
+					// ADDON by Robert Annett
+					//
+					else if(this.scrtxt.charAt(this.scroffset+1) =="C"){
+						var end = this.scrtxt.indexOf(';', this.scroffset+2);
+						var functionName = this.scrtxt.substring(this.scroffset+2, end);			
+						window[functionName]();
+						this.scroffset+=(end-this.scroffset)+1;
 					}
 				}else{
 					this.letters[i].posy=this.wide*this.fonth+(this.letters[i].posy+this.fonth);

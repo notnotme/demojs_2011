@@ -1,7 +1,10 @@
 /*------------------------------------------------------------------------------
 Copyright (c) 2011 Antoine Santo Aka NoNameNo
 
-This File is part of the CODEF project. (http://code.google.com/p/codef/)
+This File is part of the CODEF project.
+
+More info : http://codef.santo.fr
+Demo gallery http://www.wab.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +25,43 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ------------------------------------------------------------------------------*/
 
+/**
+        <b>Create a new gradient object.</b><br>
+        grad(dst, params)<br>
+        @class grad
+        @param {Object} dst The destination canvas.
+        @param {Array} params An Array of the gradient definition.
+        @property {Object} The destination canvas.
+        @property {Array} params An Array of the gradient definition.
+	@example
+	// gradient param is normalized, this example will declare 
+	// Black a start
+	// Blue at the 1st quarter
+	// Black at the half
+	// Blue at the 3rd quarter
+	// then Black at the end
+
+	var mygradcolor=[{color: 'rgb(0,0,0)' ,  offset:0},
+		  	 {color: 'rgb(0,0,255)', offset:0.25},
+			 {color: 'rgb(0,0,0)' ,  offset:0.5},
+			 {color: 'rgb(0,0,255)', offset:0.75},
+			 {color: 'rgb(0,0,0)' ,  offset:1}
+			];
+
+	var mygrad = new grad(mycanvas, mygradcolor);
+*/
 function grad(dst,params){
 	this.dst=dst;
 	this.params=params;
 	
+	/**
+                <b>Draw the gradient Horizontally.</b><br>
+                grad.drawH()<br>
+
+                @function grad.drawH
+                @example
+                mygrad.drawH();
+        */
 	this.drawH = function(){
 		var tmp=this.dst.contex.fillStyle;
 		var tmp2=this.dst.contex.globalAlpha;
@@ -40,6 +76,14 @@ function grad(dst,params){
 		this.dst.contex.globalAlpha=tmp2;
 	}
 	
+	/**
+                <b>Draw the gradient Verticaly.</b><br>
+                grad.drawV()<br>
+
+                @function grad.drawV
+                @example
+                mygrad.drawV();
+        */
 	this.drawV = function(){
 		var tmp=this.dst.contex.fillStyle;
 		var tmp2=this.dst.contex.globalAlpha;

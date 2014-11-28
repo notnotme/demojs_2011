@@ -1,7 +1,10 @@
 /*------------------------------------------------------------------------------
 Copyright (c) 2011 Antoine Santo Aka NoNameNo
 
-This File is part of the CODEF project. (http://code.google.com/p/codef/)
+This File is part of the CODEF project.
+
+More info : http://codef.santo.fr
+Demo gallery http://www.wab.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
