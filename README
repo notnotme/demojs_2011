@@ -1,0 +1,38 @@
+=============================================
+=  ____  _         ___       _              =
+= | __ )(_) __ _  |_ _|_ __ | |_ _ __ ___   =
+= |  _ \| |/ _` |  | || '_ \| __| '__/ _ \  =
+= | |_) | | (_| |  | || | | | |_| | | (_) | =
+= |____/|_|\__, | |___|_| |_|\__|_|  \___/  =
+=          |___/                            =
+= released at demojs 2011.                  =
+= by The Matadors                           =
+= (PUNKFLOYD - !!M - ZUUL)                  =
+=============================================
+
+
+Information for developers :
+
+
+You can paste theses files at the root of your webserver to launch the demo,
+otherwise you can use nodejs.
+
+
+
+For nodejs case : in the command line, follow theses steps :
+
+$ npm -g install grunt-cli
+
+$ npm install
+
+Here you will have all dependencies required for the next.
+To launch the webserver, write in the command line :
+
+$ grunt serve
+
+Fire up your web browser and type this address :
+
+http://localhost:8000
+
+
+Just use chrome. :)
